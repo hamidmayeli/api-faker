@@ -2,6 +2,8 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
+import { Database } from './database';
+import { createServer, startServer, ServerOptions } from './server';
 
 /**
  * CLI configuration interface
@@ -165,7 +167,7 @@ function parseCli(): CliConfig {
 /**
  * Main CLI entry point
  */
-function main(): void {
+async function main(): Promise<void> {
   const config = parseCli();
 
   if (!config.quiet) {
@@ -186,16 +188,61 @@ function main(): void {
 
   if (!config.quiet) {
     console.log(`Source:  ${config.source}`);
-    console.log(`Port:    ${config.port}`);
+    console.log(`Port:    ${String(config.port)}`);
     console.log(`Host:    ${config.host}`);
     console.log();
-    console.log('Starting server...');
-    console.log();
+    console.log('Loading database...');
   }
 
-  // TODO: Implement server initialization
-  console.log('Note: Server implementation coming in Phase 2');
+  try {
+    // Initialize database
+    const db = new Database(config.source, {
+      idField: config.id,
+      foreignKeySuffix: config.foreignKeySuffix,
+    });
+
+    await db.init();
+
+    if (!config.quiet) {
+      const data = db.getData();
+      const resources = Object.keys(data);
+      console.log(`Loaded ${String(resources.length)} resource(s): ${resources.join(', ')}`);
+      console.log();
+    }
+
+    // Create and start server
+    const serverOptions: ServerOptions = {
+      port: config.port,
+      host: config.host,
+      readOnly: config.readOnly,
+      noCors: config.noCors,
+      noGzip: config.noGzip,
+      quiet: config.quiet,
+      idField: config.id,
+      foreignKeySuffix: config.foreignKeySuffix,
+    };
+
+    // Only add delay if it's defined
+    if (config.delay !== undefined) {
+      serverOptions.delay = config.delay;
+    }
+
+    const app = createServer(db, serverOptions);
+
+    startServer(app, {
+      port: config.port,
+      host: config.host,
+      quiet: config.quiet,
+    });
+
+  } catch (error) {
+    console.error('Error:', error instanceof Error ? error.message : 'Unknown error');
+    process.exit(1);
+  }
 }
 
 // Run CLI
-main();
+main().catch((error: unknown) => {
+  console.error('Fatal error:', error instanceof Error ? error.message : 'Unknown error');
+  process.exit(1);
+});

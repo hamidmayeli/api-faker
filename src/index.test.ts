@@ -27,18 +27,26 @@ describe('API Faker - Module Exports', () => {
   });
 
   it('should throw error when calling create (not implemented)', () => {
-    expect(() => create()).toThrow('Not implemented yet - coming in Phase 7');
+    expect(() => {
+      create();
+    }).toThrow('Not implemented yet - coming in Phase 7');
   });
 
   it('should throw error when calling router (not implemented)', () => {
-    expect(() => router()).toThrow('Not implemented yet - coming in Phase 7');
+    expect(() => {
+      router();
+    }).toThrow('Not implemented yet - coming in Phase 7');
   });
 
   it('should throw error when calling defaults (not implemented)', () => {
-    expect(() => defaults()).toThrow('Not implemented yet - coming in Phase 7');
+    expect(() => {
+      defaults();
+    }).toThrow('Not implemented yet - coming in Phase 7');
   });
 
   it('should throw error when calling rewriter (not implemented)', () => {
-    expect(() => rewriter()).toThrow('Not implemented yet - coming in Phase 7');
+    expect(() => {
+      rewriter();
+    }).toThrow('Not implemented yet - coming in Phase 7');
   });
 });

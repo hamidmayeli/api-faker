@@ -30,33 +30,33 @@ This roadmap outlines the implementation phases for building the API Faker npm l
 ## Phase 2: Core REST API (Week 3-4)
 
 ### 2.1 Database Layer
-- [ ] Implement JSON file loading and validation
-- [ ] Create in-memory database wrapper using lowdb
-- [ ] Implement auto-save on changes
-- [ ] Add ID generation and management
-- [ ] Handle concurrent write operations safely
+- [x] Implement JSON file loading and validation
+- [x] Create in-memory database wrapper using lowdb
+- [x] Implement auto-save on changes
+- [x] Add ID generation and management
+- [x] Handle concurrent write operations safely
 
 ### 2.2 Basic CRUD Routes
-- [ ] Implement GET for plural routes (`/posts`)
-- [ ] Implement GET for singular routes (`/posts/1`)
-- [ ] Implement POST for creating resources
-- [ ] Implement PUT for full updates
-- [ ] Implement PATCH for partial updates
-- [ ] Implement DELETE for removing resources
-- [ ] Handle singular resource routes (`/profile`)
+- [x] Implement GET for plural routes (`/posts`)
+- [x] Implement GET for singular routes (`/posts/1`)
+- [x] Implement POST for creating resources
+- [x] Implement PUT for full updates
+- [x] Implement PATCH for partial updates
+- [x] Implement DELETE for removing resources
+- [x] Handle singular resource routes (`/profile`)
 
 ### 2.3 Request/Response Handling
-- [ ] Validate Content-Type headers
-- [ ] Implement proper status codes (200, 201, 204, 404, etc.)
-- [ ] Handle malformed JSON gracefully
-- [ ] Protect ID field from modifications
-- [ ] Return appropriate error messages
+- [x] Validate Content-Type headers
+- [x] Implement proper status codes (200, 201, 204, 404, etc.)
+- [x] Handle malformed JSON gracefully
+- [x] Protect ID field from modifications
+- [x] Return appropriate error messages
 
 ### 2.4 Basic Testing
-- [ ] Write unit tests for database operations
-- [ ] Write integration tests for CRUD endpoints
-- [ ] Test error handling scenarios
-- [ ] Add test coverage reporting
+- [x] Write unit tests for database operations
+- [x] Write integration tests for CRUD endpoints
+- [x] Test error handling scenarios
+- [x] Add test coverage reporting
 
 ## Phase 3: Query Features (Week 5-6)
 

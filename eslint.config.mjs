@@ -2,9 +2,9 @@ import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
 
-export default tseslint.config(
+export default [
   eslint.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
+  ...tseslint.configs.strictTypeChecked,
   prettier,
   {
     files: ['**/*.ts'],
@@ -34,6 +34,6 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['dist/**', 'node_modules/**', '*.config.ts', '*.config.js', '*.config.mjs', 'bin/**'],
-  }
-);
+    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '*.config.ts', '*.config.js', '*.config.mjs', 'bin/**'],
+  },
+];
