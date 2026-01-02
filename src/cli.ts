@@ -5,6 +5,7 @@ import { resolve } from 'path';
 import { watch } from 'chokidar';
 import { Database } from './database';
 import { createServer, startServer, ServerOptions } from './server';
+import { loadConfig, mergeConfig, Config } from './config';
 
 /**
  * CLI configuration interface
@@ -152,23 +153,55 @@ function parseCli(): CliConfig {
     .epilogue('For more information, visit https://github.com/yourusername/api-faker')
     .parseSync();
 
+  // Load config file if it exists
+  let fileConfig: Config | null = null;
+  try {
+    fileConfig = loadConfig(argv.config);
+  } catch (error) {
+    console.error(`Error loading config file: ${error instanceof Error ? error.message : String(error)}`);
+    process.exit(1);
+  }
+
+  // Build CLI config object (only values explicitly provided by CLI)
+  const cliConfig: Partial<Config> = {};
+  
+  // Only include CLI values that were explicitly set (not defaults)
+  // We check if the value is different from the default or if it was provided
+  if (argv.port !== 3000) cliConfig.port = argv.port;
+  if (argv.host !== 'localhost') cliConfig.host = argv.host;
+  if (argv.watch) cliConfig.watch = argv.watch;
+  if (argv.routes) cliConfig.routes = argv.routes;
+  if (argv.middlewares) cliConfig.middlewares = argv.middlewares;
+  if (argv.static !== './public') cliConfig.static = argv.static;
+  if (argv['read-only']) cliConfig.readOnly = argv['read-only'];
+  if (argv['no-cors']) cliConfig.noCors = argv['no-cors'];
+  if (argv['no-gzip']) cliConfig.noGzip = argv['no-gzip'];
+  if (argv.snapshots !== '.') cliConfig.snapshots = argv.snapshots;
+  if (argv.delay !== undefined) cliConfig.delay = argv.delay;
+  if (argv.id !== 'id') cliConfig.id = argv.id;
+  if (argv.foreignKeySuffix !== 'Id') cliConfig.foreignKeySuffix = argv.foreignKeySuffix;
+  if (argv.quiet) cliConfig.quiet = argv.quiet;
+
+  // Merge config file with CLI args (CLI takes precedence)
+  const merged = mergeConfig(cliConfig, fileConfig);
+
   return {
     source: argv._[0] as string | undefined,
-    port: argv.port,
-    host: argv.host,
-    watch: argv.watch,
-    routes: argv.routes,
-    middlewares: argv.middlewares,
-    static: argv.static,
+    port: merged.port ?? 3000,
+    host: merged.host ?? 'localhost',
+    watch: merged.watch ?? false,
+    routes: merged.routes,
+    middlewares: merged.middlewares,
+    static: merged.static ?? './public',
     noStatic: argv['no-static'],
-    readOnly: argv['read-only'],
-    noCors: argv['no-cors'],
-    noGzip: argv['no-gzip'],
-    snapshots: argv.snapshots,
-    delay: argv.delay,
-    id: argv.id,
-    foreignKeySuffix: argv.foreignKeySuffix,
-    quiet: argv.quiet,
+    readOnly: merged.readOnly ?? false,
+    noCors: merged.noCors ?? false,
+    noGzip: merged.noGzip ?? false,
+    snapshots: merged.snapshots ?? '.',
+    delay: merged.delay,
+    id: merged.id ?? 'id',
+    foreignKeySuffix: merged.foreignKeySuffix ?? 'Id',
+    quiet: merged.quiet ?? false,
     config: argv.config,
   };
 }
@@ -183,7 +216,7 @@ async function main(): Promise<void> {
     console.log(`
   ╔═══════════════════════════════════════╗
   ║                                       ║
-  ║         API Faker v${getVersion().padEnd(17)}║
+  ║         API Faker v${getVersion().padEnd(19)}║
   ║                                       ║
   ╚═══════════════════════════════════════╝
     `);

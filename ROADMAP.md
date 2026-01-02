@@ -187,14 +187,14 @@ This roadmap outlines the implementation phases for building the API Faker npm l
 - [ ] Execute JS modules safely
 
 ### 6.6 Config File
-- [ ] Load `api-faker.json` config file
-- [ ] Support `--config` / `-c` for custom config path
-- [ ] Merge CLI args with config file
-- [ ] Validate configuration
+- [x] Load `api-faker.json` config file
+- [x] Support `--config` / `-c` for custom config path
+- [x] Merge CLI args with config file
+- [x] Validate configuration
 
 ### 6.7 Testing CLI
 - [x] Test all CLI options
-- [ ] Test config file loading
+- [x] Test config file loading
 - [ ] Test remote schema loading
 - [x] Test JS file execution
 - [x] Test custom routes/middlewares loading

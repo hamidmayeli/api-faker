@@ -281,9 +281,98 @@ curl http://localhost:3000/posts/javascript    # → /posts?category=javascript
 # All requests will be logged by the custom middleware
 ```
 
+## Configuration File
+
+Instead of passing all options via command-line flags, you can use a configuration file. By default, API Faker looks for `api-faker.json` in the current directory.
+
+### api-faker.json
+
+The configuration file supports all CLI options in JSON format:
+
+```json
+{
+  "port": 3000,
+  "host": "localhost",
+  "watch": false,
+  "routes": "routes.json",
+  "middlewares": "middleware.js",
+  "static": "./public",
+  "readOnly": false,
+  "noCors": false,
+  "noGzip": false,
+  "delay": 0,
+  "id": "id",
+  "foreignKeySuffix": "Id",
+  "quiet": false
+}
+```
+
+**Available Options:**
+
+- `port` (number): Server port (default: 3000)
+- `host` (string): Server host (default: "localhost")
+- `watch` (boolean): Watch file for changes (default: false)
+- `routes` (string): Path to routes file
+- `middlewares` (string): Path to middleware file
+- `static` (string): Static files directory (default: "./public")
+- `readOnly` (boolean): Allow only GET requests (default: false)
+- `noCors` (boolean): Disable CORS (default: false)
+- `noGzip` (boolean): Disable GZIP compression (default: false)
+- `delay` (number): Delay in milliseconds for all responses
+- `id` (string): Custom ID field name (default: "id")
+- `foreignKeySuffix` (string): Foreign key suffix (default: "Id")
+- `quiet` (boolean): Suppress log messages (default: false)
+
+**Usage:**
+
+```bash
+# Uses default api-faker.json in current directory
+api-faker db.json
+
+# Use custom config file
+api-faker db.json --config my-config.json
+
+# CLI arguments override config file
+api-faker db.json --port 4000  # Overrides port from config file
+```
+
+**Priority:**
+
+CLI arguments take precedence over config file values. This allows you to set defaults in the config file and override them when needed.
+
+**Example - Development vs Production:**
+
+**dev.json:**
+```json
+{
+  "port": 3000,
+  "watch": true,
+  "quiet": false
+}
+```
+
+**prod.json:**
+```json
+{
+  "port": 8080,
+  "host": "0.0.0.0",
+  "readOnly": true,
+  "quiet": true
+}
+```
+
+```bash
+# Development
+api-faker db.json --config dev.json
+
+# Production
+api-faker db.json --config prod.json
+```
+
 ## Notes
 
 - **Route Order Matters**: Routes are tested in the order they appear in the JSON file. The first matching rule wins.
 - **Middleware Order**: Custom middlewares run after built-in middlewares (CORS, compression) but before routes.
 - **Query Strings**: Query strings in the original request are preserved when rewriting URLs.
 - **File Formats**: Routes must be in JSON format. Middlewares support `.js`, `.cjs`, `.mjs`, and `.ts` files.
+- **Config Priority**: CLI arguments override config file values.
