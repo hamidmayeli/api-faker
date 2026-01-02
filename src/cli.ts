@@ -1,7 +1,8 @@
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
+import { watch } from 'chokidar';
 import { Database } from './database';
 import { createServer, startServer, ServerOptions } from './server';
 
@@ -243,11 +244,62 @@ async function main(): Promise<void> {
 
     const app = createServer(db, serverOptions);
 
-    startServer(app, {
+    const server = startServer(app, {
       port: config.port,
       host: config.host,
       quiet: config.quiet,
     });
+
+    // Set up file watching if enabled
+    if (config.watch && config.source && existsSync(config.source)) {
+      const watcher = watch(config.source, {
+        ignoreInitial: true,
+        persistent: true,
+      });
+
+      watcher.on('change', (path) => {
+        if (!config.quiet) {
+          console.log();
+          console.log(`File changed: ${path}`);
+          console.log('Reloading database...');
+        }
+
+        db.init()
+          .then(() => {
+            if (!config.quiet) {
+              const data = db.getData();
+              const resources = Object.keys(data);
+              console.log(`Reloaded ${String(resources.length)} resource(s): ${resources.join(', ')}`);
+            }
+          })
+          .catch((error: unknown) => {
+            console.error('Error reloading database:', error instanceof Error ? error.message : 'Unknown error');
+          });
+      });
+
+      watcher.on('error', (error) => {
+        console.error('Watcher error:', error);
+      });
+
+      if (!config.quiet) {
+        console.log(`Watching ${config.source} for changes...`);
+        console.log();
+      }
+
+      // Handle graceful shutdown
+      process.on('SIGINT', () => {
+        if (!config.quiet) {
+          console.log();
+          console.log('Shutting down...');
+        }
+        watcher.close().catch(() => {
+          // Ignore errors during shutdown
+        });
+        server.close(() => {
+          process.exit(0);
+        });
+      });
+    }
 
   } catch (error) {
     console.error('Error:', error instanceof Error ? error.message : 'Unknown error');

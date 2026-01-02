@@ -2,7 +2,7 @@
 
 This roadmap outlines the implementation phases for building the API Faker npm library, progressing from basic to advanced features.
 
-## Phase 1: Project Foundation (Week 1-2) ✅
+## Phase 1: Project Foundation
 
 ### 1.1 Project Setup
 - [x] Initialize npm package (with pnpm) with proper structure
@@ -27,7 +27,7 @@ This roadmap outlines the implementation phases for building the API Faker npm l
 - [x] Implement basic help and version commands
 - [x] Add config file support (`api-faker.json`)
 
-## Phase 2: Core REST API (Week 3-4)
+## Phase 2: Core REST API
 
 ### 2.1 Database Layer
 - [x] Implement JSON file loading and validation
@@ -58,7 +58,7 @@ This roadmap outlines the implementation phases for building the API Faker npm l
 - [x] Test error handling scenarios
 - [x] Add test coverage reporting
 
-## Phase 3: Query Features (Week 5-6)
+## Phase 3: Query Features
 
 ### 3.1 Filtering
 - [x] Implement basic property filtering (`?title=value`)
@@ -105,7 +105,7 @@ This roadmap outlines the implementation phases for building the API Faker npm l
 - [x] Test operator correctness
 - [x] Test search functionality
 
-## Phase 4: Relationships (Week 7)
+## Phase 4: Relationships
 
 ### 4.1 Embed Children
 - [x] Implement `_embed` parameter
@@ -132,7 +132,7 @@ This roadmap outlines the implementation phases for building the API Faker npm l
 - [x] Test nested routes
 - [x] Test with complex data structures
 
-## Phase 5: Static & Special Routes (Week 8)
+## Phase 5: Static & Special Routes
 
 ### 5.1 Static File Server
 - [x] Serve `./public` directory by default
@@ -152,37 +152,37 @@ This roadmap outlines the implementation phases for building the API Faker npm l
 - [x] Test special endpoints
 - [x] Test MIME types
 
-## Phase 6: CLI Features (Week 9-10)
+## Phase 6: CLI Features
 
 ### 6.1 Server Options
-- [ ] Implement `--port` / `-p` option
-- [ ] Implement `--host` / `-H` option
-- [ ] Implement `--watch` / `-w` for file watching
-- [ ] Implement `--read-only` / `--ro` option
-- [ ] Implement `--delay` / `-d` option
-- [ ] Implement `--quiet` / `-q` option
+- [x] Implement `--port` / `-p` option
+- [x] Implement `--host` / `-H` option
+- [x] Implement `--watch` / `-w` for file watching
+- [x] Implement `--read-only` / `--ro` option
+- [x] Implement `--delay` / `-d` option
+- [x] Implement `--quiet` / `-q` option
 
 ### 6.2 Custom Files
-- [ ] Implement `--routes` / `-r` for custom routes
-- [ ] Implement `--middlewares` / `-m` for custom middleware
+- [x] Implement `--routes` / `-r` for custom routes
+- [x] Implement `--middlewares` / `-m` for custom middleware
 - [ ] Load and validate route files
 - [ ] Load and execute middleware files
 
 ### 6.3 CORS & Compression
-- [ ] Implement `--no-cors` / `--nc` option
-- [ ] Implement `--no-gzip` / `--ng` option
-- [ ] Configure CORS headers properly
-- [ ] Set up GZIP compression
+- [x] Implement `--no-cors` / `--nc` option
+- [x] Implement `--no-gzip` / `--ng` option
+- [x] Configure CORS headers properly
+- [x] Set up GZIP compression
 
 ### 6.4 Database Configuration
-- [ ] Implement `--id` / `-i` option for custom ID field
-- [ ] Implement `--foreignKeySuffix` / `--fks` option
-- [ ] Implement `--snapshots` / `-S` option
+- [x] Implement `--id` / `-i` option for custom ID field
+- [x] Implement `--foreignKeySuffix` / `--fks` option
+- [x] Implement `--snapshots` / `-S` option
 - [ ] Support snapshots directory
 
 ### 6.5 Remote & Dynamic Sources
 - [ ] Support HTTP/HTTPS URLs for schema
-- [ ] Support JavaScript files for data generation
+- [x] Support JavaScript files for data generation
 - [ ] Fetch and cache remote schemas
 - [ ] Execute JS modules safely
 
@@ -193,13 +193,13 @@ This roadmap outlines the implementation phases for building the API Faker npm l
 - [ ] Validate configuration
 
 ### 6.7 Testing CLI
-- [ ] Test all CLI options
+- [x] Test all CLI options
 - [ ] Test config file loading
 - [ ] Test remote schema loading
-- [ ] Test JS file execution
+- [x] Test JS file execution
 - [ ] Test watch mode
 
-## Phase 7: Programmatic API (Week 11-12)
+## Phase 7: Programmatic API
 
 ### 7.1 Module Exports
 - [ ] Export `create()` function (Express server)
@@ -239,7 +239,7 @@ This roadmap outlines the implementation phases for building the API Faker npm l
 - [ ] Test custom rendering
 - [ ] Test mounting on custom endpoints
 
-## Phase 8: Advanced Features (Week 13-14)
+## Phase 8: Advanced Features
 
 ### 8.1 Performance Optimization
 - [ ] Optimize query execution
@@ -270,7 +270,7 @@ This roadmap outlines the implementation phases for building the API Faker npm l
 - [ ] Edge case testing
 - [ ] Security testing
 
-## Phase 9: Documentation & Polish (Week 15-16)
+## Phase 9: Documentation & Polish
 
 ### 9.1 Documentation
 - [ ] Complete API documentation

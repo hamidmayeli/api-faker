@@ -1,7 +1,8 @@
 import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
 import { existsSync } from 'fs';
-import { resolve } from 'path';
+import { resolve, extname } from 'path';
+import { pathToFileURL } from 'url';
 
 /**
  * Database data structure
@@ -58,15 +59,51 @@ export class Database {
 
   /**
    * Initialize the database by reading from file or using provided data
+   * Supports .json, .js, .ts, and .mjs files
    * 
-   * @throws Error if file doesn't exist or contains invalid JSON
+   * @throws Error if file doesn't exist or contains invalid data
    */
   async init(): Promise<void> {
     if (this.filePath && !existsSync(this.filePath)) {
       throw new Error(`Database file not found: ${this.filePath}`);
     }
 
-    await this.db.read();
+    // Check if file is a JavaScript/TypeScript module
+    if (this.filePath) {
+      const ext = extname(this.filePath).toLowerCase();
+      
+      if (ext === '.js' || ext === '.mjs' || ext === '.cjs' || ext === '.ts') {
+        // Load JavaScript module
+        try {
+          const fileUrl = pathToFileURL(this.filePath).href;
+          const module = (await import(fileUrl)) as { default?: unknown } & Record<string, unknown>;
+          const data: unknown = module.default ?? module;
+          
+          // If it's a function, call it to get the data
+          if (typeof data === 'function') {
+            const result: unknown = await Promise.resolve((data as () => unknown)());
+            if (typeof result !== 'object' || result === null) {
+              throw new Error('JavaScript module function must return an object');
+            }
+            this.db.data = result as DatabaseData;
+          } else if (typeof data === 'object' && data !== null) {
+            this.db.data = data as DatabaseData;
+          } else {
+            throw new Error('JavaScript module must export an object or function');
+          }
+        } catch (error) {
+          throw new Error(
+            `Failed to load JavaScript module: ${error instanceof Error ? error.message : 'Unknown error'}`
+          );
+        }
+      } else {
+        // Load JSON file
+        await this.db.read();
+      }
+    } else {
+      // In-memory database
+      await this.db.read();
+    }
 
     if (typeof this.db.data !== 'object') {
       this.db.data = {};
