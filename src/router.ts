@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { Database } from './database';
 import { parseQuery, applyQuery, generateLinkHeader } from './query';
+import { parseRelationships, applyRelationships, getForeignKey } from './relationships';
 
 /**
  * Helper to safely get route param (Express guarantees route params exist)
@@ -40,6 +41,8 @@ export interface RouterOptions {
 export function createRouter(db: Database, options: Partial<RouterOptions> = {}): Router {
   const router = Router();
   const readOnly = options.readOnly || false;
+  const idField = options.idField || 'id';
+  const foreignKeySuffix = options.foreignKeySuffix || 'Id';
 
   /**
    * Validate Content-Type for write operations
@@ -77,6 +80,18 @@ export function createRouter(db: Database, options: Partial<RouterOptions> = {})
       const queryOptions = parseQuery(req);
       const { data: filtered, total } = applyQuery(data, queryOptions);
 
+      // Apply relationships (_embed, _expand)
+      const { embed, expand } = parseRelationships(req.query as Record<string, unknown>);
+      const withRelationships = applyRelationships(
+        filtered as Record<string, unknown>[],
+        resource,
+        embed,
+        expand,
+        db,
+        idField,
+        foreignKeySuffix
+      );
+
       // Add X-Total-Count header
       res.set('X-Total-Count', String(total));
 
@@ -86,7 +101,7 @@ export function createRouter(db: Database, options: Partial<RouterOptions> = {})
         res.set('Link', linkHeader);
       }
 
-      res.json(filtered);
+      res.json(withRelationships);
       return;
     }
 
@@ -114,7 +129,106 @@ export function createRouter(db: Database, options: Partial<RouterOptions> = {})
       return;
     }
 
+    // Apply relationships if requested
+    const { embed, expand } = parseRelationships(req.query as Record<string, unknown>);
+    if (embed.length > 0 || expand.length > 0) {
+      const withRelationships = applyRelationships(
+        [item as Record<string, unknown>],
+        resource,
+        embed,
+        expand,
+        db,
+        idField,
+        foreignKeySuffix
+      );
+      res.json(withRelationships[0]);
+      return;
+    }
+
     res.json(item);
+  });
+
+  /**
+   * GET /:parent/:parentId/:children - Get nested children
+   */
+  router.get('/:parent/:parentId/:children', (req: Request, res: Response): void => {
+    const parent = getParam(req, 'parent');
+    const parentId = getParam(req, 'parentId');
+    const children = getParam(req, 'children');
+
+    // Verify parent exists
+    if (!db.isCollection(parent)) {
+      res.status(404).json({ error: `Collection '${parent}' not found` });
+      return;
+    }
+
+    const parentItem = db.getById(parent, parentId);
+    if (!parentItem) {
+      res.status(404).json({ error: `Parent item with id '${parentId}' not found in '${parent}'` });
+      return;
+    }
+
+    // Get children collection
+    const childrenData = db.getCollection(children);
+    if (!Array.isArray(childrenData)) {
+      res.status(404).json({ error: `Collection '${children}' not found` });
+      return;
+    }
+
+    // Filter children by parent foreign key
+    const foreignKey = getForeignKey(parent, foreignKeySuffix);
+    const filtered = childrenData.filter(child => {
+      if (typeof child !== 'object' || child === null) return false;
+      const childFk = (child as Record<string, unknown>)[foreignKey];
+      return childFk === parentId || (typeof childFk === 'number' || typeof childFk === 'string' ? String(childFk) === parentId : false);
+    });
+
+    // Apply query parameters
+    const queryOptions = parseQuery(req);
+    const { data: result, total } = applyQuery(filtered, queryOptions);
+
+    res.set('X-Total-Count', String(total));
+    res.json(result);
+  });
+
+  /**
+   * POST /:parent/:parentId/:children - Create nested child
+   */
+  router.post('/:parent/:parentId/:children', validateContentType, async (req: Request, res: Response) => {
+    if (readOnly) {
+      return res.status(403).json({ error: 'Read-only mode enabled' });
+    }
+
+    const parent = getParam(req, 'parent');
+    const parentId = getParam(req, 'parentId');
+    const children = getParam(req, 'children');
+    const data = req.body as Record<string, unknown>;
+
+    if (typeof data !== 'object') {
+      return res.status(400).json({ error: 'Request body must be a JSON object' });
+    }
+
+    // Verify parent exists
+    if (!db.isCollection(parent)) {
+      return res.status(404).json({ error: `Collection '${parent}' not found` });
+    }
+
+    const parentItem = db.getById(parent, parentId);
+    if (!parentItem) {
+      return res.status(404).json({ error: `Parent item with id '${parentId}' not found in '${parent}'` });
+    }
+
+    // Auto-set foreign key
+    const foreignKey = getForeignKey(parent, foreignKeySuffix);
+    data[foreignKey] = parentId;
+
+    try {
+      const created = await db.create(children, data);
+      return res.status(201).json(created);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return res.status(400).json({ error: message });
+    }
   });
 
   /**

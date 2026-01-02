@@ -61,76 +61,76 @@ This roadmap outlines the implementation phases for building the API Faker npm l
 ## Phase 3: Query Features (Week 5-6)
 
 ### 3.1 Filtering
-- [ ] Implement basic property filtering (`?title=value`)
-- [ ] Support multiple values for same property (`?id=1&id=2`)
-- [ ] Implement deep property access (`?author.name=typicode`)
-- [ ] Add URL query parsing and validation
+- [x] Implement basic property filtering (`?title=value`)
+- [x] Support multiple values for same property (`?id=1&id=2`)
+- [x] Implement deep property access (`?author.name=typicode`)
+- [x] Add URL query parsing and validation
 
 ### 3.2 Pagination
-- [ ] Implement `_page` parameter
-- [ ] Implement `_limit` parameter
-- [ ] Generate Link headers (first, prev, next, last)
-- [ ] Set default page size (10 items)
-- [ ] Calculate total pages
+- [x] Implement `_page` parameter
+- [x] Implement `_limit` parameter
+- [x] Generate Link headers (first, prev, next, last)
+- [x] Set default page size (10 items)
+- [x] Calculate total pages
 
 ### 3.3 Sorting
-- [ ] Implement `_sort` parameter
-- [ ] Implement `_order` parameter (asc/desc)
-- [ ] Support multiple field sorting
-- [ ] Handle nested property sorting
+- [x] Implement `_sort` parameter
+- [x] Implement `_order` parameter (asc/desc)
+- [x] Support multiple field sorting
+- [x] Handle nested property sorting
 
 ### 3.4 Slicing
-- [ ] Implement `_start` parameter
-- [ ] Implement `_end` parameter
-- [ ] Support `_limit` as alternative to `_end`
-- [ ] Add `X-Total-Count` header
-- [ ] Ensure Array.slice compatibility
+- [x] Implement `_start` parameter
+- [x] Implement `_end` parameter
+- [x] Support `_limit` as alternative to `_end`
+- [x] Add `X-Total-Count` header
+- [x] Ensure Array.slice compatibility
 
 ### 3.5 Operators
-- [ ] Implement `_gte` (greater than or equal)
-- [ ] Implement `_lte` (less than or equal)
-- [ ] Implement `_ne` (not equal)
-- [ ] Implement `_like` (pattern matching with RegExp)
+- [x] Implement `_gte` (greater than or equal)
+- [x] Implement `_lte` (less than or equal)
+- [x] Implement `_ne` (not equal)
+- [x] Implement `_like` (pattern matching with RegExp)
 
 ### 3.6 Full-Text Search
-- [ ] Implement `q` parameter
-- [ ] Search across all string fields
-- [ ] Support case-insensitive search
-- [ ] Optimize search performance
+- [x] Implement `q` parameter
+- [x] Search across all string fields
+- [x] Support case-insensitive search
+- [x] Optimize search performance
 
 ### 3.7 Testing Query Features
-- [ ] Test all filter combinations
-- [ ] Test pagination edge cases
-- [ ] Test sorting with various data types
-- [ ] Test operator correctness
-- [ ] Test search functionality
+- [x] Test all filter combinations
+- [x] Test pagination edge cases
+- [x] Test sorting with various data types
+- [x] Test operator correctness
+- [x] Test search functionality
 
 ## Phase 4: Relationships (Week 7)
 
 ### 4.1 Embed Children
-- [ ] Implement `_embed` parameter
-- [ ] Detect foreign key relationships
-- [ ] Support configurable foreign key suffix
-- [ ] Handle missing relationships gracefully
-- [ ] Support multiple embeds
+- [x] Implement `_embed` parameter
+- [x] Detect foreign key relationships
+- [x] Support configurable foreign key suffix
+- [x] Handle missing relationships gracefully
+- [x] Support multiple embeds
 
 ### 4.2 Expand Parent
-- [ ] Implement `_expand` parameter
-- [ ] Resolve parent resources by foreign key
-- [ ] Handle missing parents
-- [ ] Support multiple expansions
+- [x] Implement `_expand` parameter
+- [x] Resolve parent resources by foreign key
+- [x] Handle missing parents
+- [x] Support multiple expansions
 
 ### 4.3 Nested Routes
-- [ ] Implement nested GET (`/posts/1/comments`)
-- [ ] Implement nested POST (`/posts/1/comments`)
-- [ ] Validate parent resource exists
-- [ ] Auto-set foreign keys on creation
+- [x] Implement nested GET (`/posts/1/comments`)
+- [x] Implement nested POST (`/posts/1/comments`)
+- [x] Validate parent resource exists
+- [x] Auto-set foreign keys on creation
 
 ### 4.4 Testing Relationships
-- [ ] Test embed functionality
-- [ ] Test expand functionality
-- [ ] Test nested routes
-- [ ] Test with complex data structures
+- [x] Test embed functionality
+- [x] Test expand functionality
+- [x] Test nested routes
+- [x] Test with complex data structures
 
 ## Phase 5: Static & Special Routes (Week 8)
 
