@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { Database } from './database';
+import { parseQuery, applyQuery, generateLinkHeader } from './query';
 
 /**
  * Helper to safely get route param (Express guarantees route params exist)
@@ -71,7 +72,25 @@ export function createRouter(db: Database, options: Partial<RouterOptions> = {})
       res.status(404).json({ error: `Resource '${resource}' not found` });
       return;
     }
+    // For collections (arrays), apply query parameters
+    if (Array.isArray(data)) {
+      const queryOptions = parseQuery(req);
+      const { data: filtered, total } = applyQuery(data, queryOptions);
 
+      // Add X-Total-Count header
+      res.set('X-Total-Count', String(total));
+
+      // Add Link header for pagination
+      if (queryOptions.page !== undefined && queryOptions.limit !== undefined) {
+        const linkHeader = generateLinkHeader(req, queryOptions.page, queryOptions.limit, total);
+        res.set('Link', linkHeader);
+      }
+
+      res.json(filtered);
+      return;
+    }
+
+    // For singular resources (objects), return as-is
     res.json(data);
   });
 
