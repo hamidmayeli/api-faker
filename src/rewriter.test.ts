@@ -172,7 +172,7 @@ describe('rewriter', () => {
       expect((response.body as { url: string }).url).toBe('/v1/posts/1/comments');
     });
 
-    it('should apply only the first matching rule', async () => {
+    it('should apply only the first matching rule based on specificity', async () => {
       const rewriter = createRewriterMiddleware({
         '/posts/*': '/articles/$1',
         '/posts/:id': '/items/:id',
@@ -184,7 +184,8 @@ describe('rewriter', () => {
       });
 
       const response = await request(app).get('/posts/123');
-      expect((response.body as { url: string }).url).toBe('/articles/123');
+      // :id pattern is more specific than * wildcard, so it matches first
+      expect((response.body as { url: string }).url).toBe('/items/123');
     });
 
     it('should not rewrite URLs that do not match any rule', async () => {
@@ -325,6 +326,79 @@ describe('rewriter', () => {
 
       const response = await request(app).get('/api/posts/1/comments/42?_sort=date&_order=asc&_limit=10');
       expect((response.body as { url: string }).url).toBe('/posts/1/comments/42?_sort=date&_order=asc&_limit=10');
+    });
+
+    it('should rewrite with giving priority to exact matches over wildcards', async () => {
+      const rewriter = createRewriterMiddleware({
+        '/api/*': '/$1',
+        '/api/health': '/health-check',
+      });
+      app.use(rewriter);
+
+      app.use((req, res) => {
+        res.json({ url: req.url });
+      });
+
+      const response = await request(app).get('/api/health');
+      expect((response.body as { url: string }).url).toBe('/health-check');
+    });
+
+    it('should rewrite with giving priority to detailed match', async () => {
+      const rewriter = createRewriterMiddleware({
+        '/api/posts/*': '/posts/$1',
+        '/api/posts/hot': '/posts?sort=hot',
+      });
+      app.use(rewriter);
+
+      app.use((req, res) => {
+        res.json({ url: req.url });
+      });
+
+      const response = await request(app).get('/api/posts/hot');
+      expect((response.body as { url: string }).url).toBe('/posts?sort=hot');
+    });
+
+    it('should rewrite with giving priority to detailed match with wildcards', async () => {
+      const rewriter = createRewriterMiddleware({
+        '/api/posts/*': '/posts/$1',
+        '/api/posts/*?sort=hot': '/comments?sort=hot',
+      });
+      app.use(rewriter);
+
+      app.use((req, res) => {
+        res.json({ url: req.url });
+      });
+
+      const response = await request(app).get('/api/posts/comments?sort=hot');
+      expect((response.body as { url: string }).url).toBe('/comments?sort=hot');
+    });
+
+    it('should support wildcards in query parameters', async () => {
+      const rewriter = createRewriterMiddleware({
+        '/v1/business/search?size=*&page=*&q=*': '/business?_limit=$1&_page=$2&q=$3',
+      });
+      app.use(rewriter);
+
+      app.use((req, res) => {
+        res.json({ url: req.url });
+      });
+
+      const response = await request(app).get('/v1/business/search?size=2&page=3&q=test');
+      expect((response.body as { url: string }).url).toBe('/business?_limit=2&_page=3&q=test');
+    });
+
+    it('should handle empty wildcard values in query parameters', async () => {
+      const rewriter = createRewriterMiddleware({
+        '/v1/business/search?size=*&page=*&q=*': '/business?_limit=$1&_page=$2&q=$3',
+      });
+      app.use(rewriter);
+
+      app.use((req, res) => {
+        res.json({ url: req.url });
+      });
+
+      const response = await request(app).get('/v1/business/search?size=2&page=2&q=');
+      expect((response.body as { url: string }).url).toBe('/business?_limit=2&_page=2&q=');
     });
   });
 });

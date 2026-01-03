@@ -123,20 +123,45 @@ function patternToRegex(pattern: string): { regex: RegExp; params: string[] } {
  * ```
  */
 function rewriteUrl(url: string, fromPattern: string, toPattern: string): string | null {
-  // Separate the path and query string
+  // Separate the path and query string from both URL and pattern
   const splitResult = url.split('?', 2);
   const urlPath = splitResult[0] ?? '';
-  const queryString = splitResult[1];
+  const urlQuery = splitResult[1];
   
-  const { regex, params } = patternToRegex(fromPattern);
+  const patternSplit = fromPattern.split('?', 2);
+  const patternPath = patternSplit[0] ?? '';
+  const patternQuery = patternSplit[1];
+  
+  const { regex, params } = patternToRegex(patternPath);
   const match = urlPath.match(regex);
 
   if (!match) {
     return null;
   }
 
-  // Extract captured values
+  // Extract captured values from path
   const captures = match.slice(1);
+  
+  // Handle query string wildcards
+  if (patternQuery) {
+    // Parse pattern query for wildcards
+    const patternParams = new URLSearchParams(patternQuery);
+    const urlParams = new URLSearchParams(urlQuery || '');
+    
+    // Check if all pattern params exist in URL and capture wildcard values
+    for (const [key, patternValue] of patternParams.entries()) {
+      if (!urlParams.has(key)) {
+        return null; // Required param missing
+      }
+      
+      if (patternValue === '*') {
+        // Capture the value for this wildcard
+        captures.push(urlParams.get(key) || '');
+      } else if (urlParams.get(key) !== patternValue) {
+        return null; // Value doesn't match
+      }
+    }
+  }
 
   // Build the replacement URL
   let result = toPattern;
@@ -158,12 +183,59 @@ function rewriteUrl(url: string, fromPattern: string, toPattern: string): string
     }
   }
 
-  // Append query string if present
-  if (queryString) {
-    result += '?' + queryString;
+  // If pattern has no query string, append the original URL query string
+  if (!patternQuery && urlQuery) {
+    result += '?' + urlQuery;
   }
 
   return result;
+}
+
+/**
+ * Calculate the specificity score of a route pattern
+ * Higher scores indicate more specific patterns that should be matched first
+ *
+ * @param pattern - Route pattern to score
+ * @returns Specificity score
+ *
+ * @example
+ * ```typescript
+ * getPatternSpecificity('/api/health')         // Higher score (exact)
+ * getPatternSpecificity('/api/:id')            // Medium score (param)
+ * getPatternSpecificity('/api/*')              // Lower score (wildcard)
+ * ```
+ */
+function getPatternSpecificity(pattern: string): number {
+  let score = 0;
+  
+  // Split pattern into path and query parts
+  const [path, query] = pattern.split('?', 2);
+  
+  // Count path segments
+  const segments = path?.split('/').filter(s => s.length > 0) ?? [];
+  
+  for (const segment of segments) {
+    if (segment === '*') {
+      // Wildcards are least specific
+      score += 1;
+    } else if (segment.startsWith(':')) {
+      // Parameters are more specific than wildcards
+      score += 10;
+    } else {
+      // Static segments are most specific
+      score += 100;
+    }
+  }
+  
+  // Add bonus for having query parameters (more specific)
+  if (query) {
+    score += 1000;
+  }
+  
+  // Longer paths are generally more specific
+  score += segments.length;
+  
+  return score;
 }
 
 /**
@@ -185,9 +257,16 @@ function rewriteUrl(url: string, fromPattern: string, toPattern: string): string
  * ```
  */
 export function createRewriterMiddleware(rules: RewriteRules): RequestHandler {
+  // Sort rules by specificity (most specific first)
+  const sortedRules = Object.entries(rules).sort((a, b) => {
+    const scoreA = getPatternSpecificity(a[0]);
+    const scoreB = getPatternSpecificity(b[0]);
+    return scoreB - scoreA; // Higher score first
+  });
+
   return (req, _res, next) => {
-    // Try each rule in order
-    for (const [from, to] of Object.entries(rules)) {
+    // Try each rule in order of specificity
+    for (const [from, to] of sortedRules) {
       const rewritten = rewriteUrl(req.url, from, to);
 
       if (rewritten !== null) {
